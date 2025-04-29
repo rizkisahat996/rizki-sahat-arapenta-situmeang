@@ -1,0 +1,2437 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Software Engineer Portfolio</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #050505;
+        color: #e6e6e6;
+        overflow-x: hidden;
+      }
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 0;
+      }
+      .content {
+        position: relative;
+        z-index: 10;
+      }
+      .section {
+        min-height: 100vh;
+        padding: 6rem 2rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+      .nav-link {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+      .nav-link::after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 0;
+        background: linear-gradient(90deg, #2563eb, #06b6d4);
+        transition: width 0.3s ease;
+      }
+      .nav-link:hover::after {
+        width: 100%;
+      }
+      .timeline-item {
+        position: relative;
+      }
+      .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 8px;
+        height: calc(100% + 20px);
+        width: 2px;
+        background: linear-gradient(to bottom, #2563eb, transparent);
+      }
+      .timeline-item:last-child::before {
+        display: none;
+      }
+      .timeline-dot {
+        position: absolute;
+        left: -9px;
+        top: 8px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #2563eb, #06b6d4);
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.7);
+      }
+      .project-card {
+        perspective: 1000px;
+        transition: transform 0.6s;
+      }
+      .project-card:hover {
+        transform: scale(1.02);
+      }
+      .project-card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transition: transform 0.8s;
+        transform-style: preserve-3d;
+      }
+      .project-card:hover .project-card-inner {
+        transform: rotateY(180deg);
+      }
+      .project-card-front,
+      .project-card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 0.5rem;
+        overflow: hidden;
+      }
+      .project-card-back {
+        transform: rotateY(180deg);
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .glow {
+        position: relative;
+      }
+      .glow::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border-radius: inherit;
+      }
+      .glow:hover::after {
+        opacity: 1;
+      }
+      .loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #050505;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 1s ease;
+      }
+      .loader.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      @media (max-width: 768px) {
+        .section {
+          padding: 4rem 1rem;
+        }
+        .timeline-item::before {
+          left: 19px;
+        }
+        .timeline-dot {
+          left: 10px;
+        }
+      }
+      .carousel {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .carousel-container {
+        display: flex;
+        transition: transform 0.5s ease-in-out;
+        height: 100%;
+        width: 100%;
+      }
+
+      .carousel-item {
+        flex: 0 0 100%;
+      }
+
+      .carousel-indicator.active {
+        opacity: 1;
+      }
+
+      @media (max-width: 640px) {
+        .project-card {
+          height: auto;
+          min-height: 28rem;
+        }
+
+        .project-card-inner {
+          height: 100%;
+        }
+      }
+
+      .edu-container {
+        position: relative;
+        min-height: 300px;
+      }
+
+      .edu-year {
+        position: relative;
+      }
+
+      .edu-cube {
+        position: absolute;
+        top: -10px;
+        left: -30px;
+        width: 30px;
+        height: 30px;
+        transform: rotate(45deg) translateZ(0);
+        background: linear-gradient(135deg, #2563eb, #06b6d4);
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.7);
+        z-index: -1;
+        transition: all 0.5s ease;
+      }
+
+      .education-item:hover .edu-cube {
+        transform: rotate(45deg) scale(1.2) translateZ(0);
+      }
+
+      .volunteer-gallery {
+        perspective: 1000px;
+      }
+
+      #volunteerCarousel {
+        transform-style: preserve-3d;
+        transform: translateZ(0);
+      }
+
+      .volunteer-card {
+        backface-visibility: hidden;
+        transition: transform 0.8s ease;
+      }
+
+      .volunteer-card:hover {
+        transform: scale(1.03);
+      }
+
+      @media (max-width: 768px) {
+        #volunteerCarousel {
+          display: none;
+        }
+
+        .education-item {
+          padding-left: 20px;
+        }
+
+        .edu-cube {
+          left: -20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loader" id="loader">
+      <div class="relative w-24 h-24">
+        <div
+          class="absolute inset-0 border-4 border-t-transparent border-blue-500 rounded-full animate-spin"
+        ></div>
+        <div
+          class="absolute inset-2 border-4 border-t-transparent border-cyan-400 rounded-full animate-spin"
+          style="animation-direction: reverse"
+        ></div>
+        <div
+          class="absolute inset-4 border-4 border-t-transparent border-blue-300 rounded-full animate-spin"
+        ></div>
+      </div>
+    </div>
+
+    <canvas id="bg"></canvas>
+
+    <div class="content">
+      <nav
+        class="fixed top-0 left-0 w-full backdrop-blur-md bg-black bg-opacity-70 z-20 px-6 py-4"
+      >
+        <div
+          class="max-w-7xl mx-auto flex flex-wrap justify-between items-center"
+        >
+          <a
+            href="#"
+            class="text-xl font-bold bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+            >Rizki Sahat</a
+          >
+
+          <div class="hidden md:flex space-x-8">
+            <a href="#intro" class="nav-link text-gray-300 hover:text-white"
+              >Home</a
+            >
+            <a href="#career" class="nav-link text-gray-300 hover:text-white"
+              >Career</a
+            >
+            <a href="#education" class="nav-link text-gray-300 hover:text-white"
+              >Education</a
+            >
+            <a
+              href="#volunteering"
+              class="nav-link text-gray-300 hover:text-white"
+              >Volunteering</a
+            >
+            <a href="#projects" class="nav-link text-gray-300 hover:text-white"
+              >Projects</a
+            >
+            <a href="#contact" class="nav-link text-gray-300 hover:text-white"
+              >Contact</a
+            >
+          </div>
+
+          <button
+            id="menuToggle"
+            class="md:hidden text-gray-300 hover:text-white focus:outline-none"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div
+          id="mobileMenu"
+          class="md:hidden hidden pt-4 pb-2 px-4 space-y-2 bg-black bg-opacity-90"
+        >
+          <a href="#intro" class="block py-2 text-gray-300 hover:text-white"
+            >Home</a
+          >
+          <a href="#career" class="block py-2 text-gray-300 hover:text-white"
+            >Career</a
+          >
+          <a href="#education" class="block py-2 text-gray-300 hover:text-white"
+            >Education</a
+          >
+          <a
+            href="#volunteering"
+            class="block py-2 text-gray-300 hover:text-white"
+            >Volunteering</a
+          >
+          <a href="#projects" class="block py-2 text-gray-300 hover:text-white"
+            >Projects</a
+          >
+          <a href="#contact" class="block py-2 text-gray-300 hover:text-white"
+            >Contact</a
+          >
+        </div>
+      </nav>
+
+      <section id="intro" class="section">
+        <div
+          class="max-w-7xl mx-auto flex flex-col-reverse md:flex-row items-center"
+        >
+          <div class="md:w-3/5 mt-10 md:mt-0">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">
+              <span class="block">Hi, I'm</span>
+              <span
+                class="bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+                >Rizki Sahat</span
+              >
+            </h1>
+            <p class="text-xl md:text-2xl mb-6 text-gray-300">
+              Software Engineer
+            </p>
+            <p class="text-gray-400 mb-8 max-w-lg">
+              A passionate software developer with expertise in building
+              innovative and scalable solutions. I specialize in full-stack
+              development, AI integration, and currently diving into 3D web
+              technologies.
+            </p>
+            <div class="flex space-x-4">
+              <a
+                href="#projects"
+                class="glow px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/50"
+              >
+                Explore My Work
+              </a>
+              <a
+                href="#contact"
+                class="glow px-6 py-3 border border-blue-500 text-blue-400 font-medium rounded-lg transition-all duration-300 hover:bg-blue-500/10"
+              >
+                Get In Touch
+              </a>
+            </div>
+          </div>
+          <div class="md:w-2/5 flex justify-center">
+            <div class="relative w-64 h-64">
+              <div
+                id="avatarContainer"
+                class="w-full h-full rounded-full overflow-hidden border-4 border-blue-500/50 shadow-lg shadow-blue-500/30"
+              >
+                <img
+                  src="/images/profile.jpg"
+                  alt="Rizki Sahat"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="career" class="section bg-slate-900/30">
+        <div class="max-w-5xl mx-auto">
+          <h2
+            class="text-3xl md:text-4xl font-bold mb-12 bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+          >
+            Experience
+          </h2>
+
+          <div class="space-y-16 pl-6 md:pl-10">
+            <div class="timeline-item pl-8 md:pl-10">
+              <div class="timeline-dot"></div>
+              <div class="pb-2">
+                <span class="text-sm text-cyan-400 font-medium"
+                  >Jan 2024 – Dec 2024</span
+                >
+                <h3 class="text-xl md:text-2xl font-bold mb-2">
+                  Part Time Developer | Rector Bureau, Directorate of
+                  Digitalization and Integration System
+                </h3>
+                <p class="text-sm text-gray-500 mb-3">
+                  University of Sumatera Utara (USU) - Medan
+                </p>
+                <p class="text-gray-400 mb-3">
+                  Collaborated with design teams to implement a cutting-edge
+                  design system for the university's web ecosystem, encompassing
+                  www.usu.ac.id, 16+ faculty subdomains, and numerous
+                  program-specific websites. Utilized advanced frontend
+                  technologies including Tailwind CSS, Next.js, Blade
+                  templating, and Vue.js to create a cohesive, responsive
+                  digital presence.
+                </p>
+                <p class="text-gray-400">
+                  Engineered interactive data visualization components for the
+                  Sistem Penjaminan Mutu Internal platform, efficiently managing
+                  over 100,000 records. Implemented optimized CTE query methods
+                  for superior data processing performance while maintaining
+                  code readability. The system received a Gold Medal in Anugrah
+                  Diksaintek 2024 for excellence in Human Resource Website
+                  category.
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Next.js</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Vue.js</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Laravel</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Tailwind CSS</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Data Visualization</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item pl-8 md:pl-10">
+              <div class="timeline-dot"></div>
+              <div class="pb-2">
+                <span class="text-sm text-cyan-400 font-medium"
+                  >Jul 2024 – Dec 2024</span
+                >
+                <h3 class="text-xl md:text-2xl font-bold mb-2">
+                  Game Programmer Mentee
+                </h3>
+                <p class="text-sm text-gray-500 mb-3">
+                  Mitra Edukasi Pratama · Apprenticeship
+                </p>
+                <p class="text-gray-400 mb-3">
+                  Completed a comprehensive Game Development program, mastering
+                  multiple game genres including 2D Platformers, Top-Down 2D
+                  Shooters, Side-Scrolling 2D Games, First-Person Shooters (3D),
+                  and Third-Person Shooters (3D). Developed proficiency in Unity
+                  and C# to build polished gameplay mechanics across various
+                  formats.
+                </p>
+                <p class="text-gray-400 mb-3">
+                  Gained practical knowledge of game monetization strategies
+                  using platforms like itch.io, combining technical development
+                  with market viability. As a final project highlight, developed
+                  Srikandi's Great Adventure, a top-down 2D shooter inspired by
+                  the legendary Dewi Srikandi.
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Unity</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >C#</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Game Development</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >2D/3D Games</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div class="timeline-item pl-8 md:pl-10">
+              <div class="timeline-dot"></div>
+              <div class="pb-2">
+                <span class="text-sm text-cyan-400 font-medium"
+                  >Jan 2024 – Jun 2024</span
+                >
+                <h3 class="text-xl md:text-2xl font-bold mb-2">
+                  Mentee Study Program IBM Advance AI
+                </h3>
+                <p class="text-sm text-gray-500 mb-3">
+                  Infinite Learning Indonesia · Apprenticeship
+                </p>
+                <p class="text-gray-400 mb-3">
+                  Participated in an Independent Study Program with Infinite
+                  Learning, focusing on cutting-edge topics including Deep
+                  Learning, Data Analysis, Data Science, and Cybersecurity.
+                </p>
+                <p class="text-gray-400">
+                  Led development of key AI-driven projects: a Personalized
+                  Hairstyle Generator that suggests optimal hairstyles based on
+                  facial structure using computer vision, and LingoLeapAI, an
+                  innovative language tool leveraging BERT to facilitate
+                  real-time communication with foreign speakers.
+                </p>
+                <div class="mt-3 flex flex-wrap gap-2">
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Deep Learning</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >BERT</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Computer Vision</span
+                  >
+                  <span
+                    class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                    >Data Science</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section id="education" class="section">
+        <div class="max-w-5xl mx-auto">
+          <h2
+            class="text-3xl md:text-4xl font-bold mb-12 bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+          >
+            Education & Certifications
+          </h2>
+
+          <div class="edu-container relative">
+            <div
+              id="educationPath"
+              class="absolute top-0 left-0 w-full h-full -z-10"
+            ></div>
+
+            <div class="space-y-16">
+              <div
+                class="education-item flex md:items-center flex-col md:flex-row group"
+              >
+                <div class="edu-year w-full md:w-1/4 mb-4 md:mb-0">
+                  <div class="inline-block relative">
+                    <span class="text-lg font-bold text-cyan-400"
+                      >2021 - Present</span
+                    >
+                    <div
+                      class="edu-cube opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+                    ></div>
+                  </div>
+                </div>
+                <div
+                  class="w-full md:w-3/4 bg-slate-800/30 backdrop-blur-sm p-6 rounded-lg border border-blue-500/10 hover:border-blue-500/30 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20"
+                >
+                  <h3 class="text-xl font-bold mb-2">
+                    Undergraduate in Information Technology
+                  </h3>
+                  <div class="flex items-center mb-3">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5 text-blue-400 mr-2"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"
+                      />
+                    </svg>
+                    <span class="text-gray-300"
+                      >Universitas Sumatera Utara</span
+                    >
+                    <span
+                      class="ml-3 bg-blue-500/20 text-blue-300 text-xs px-2 py-1 rounded"
+                      >GPA: 3.73</span
+                    >
+                  </div>
+                  <p class="text-gray-400">
+                    Pursuing a degree in Information Technology with focus on
+                    software engineering, web development, and data management.
+                    Actively involved in multiple student organizations while
+                    maintaining academic excellence.
+                  </p>
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Software Development</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Web Technologies</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Data Structures</span
+                    >
+                  </div>
+                </div>
+              </div>
+              <div
+                class="education-item flex md:items-center flex-col md:flex-row group"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <section id="volunteering" class="section bg-slate-900/30">
+        <div class="max-w-7xl mx-auto">
+          <h2
+            class="text-3xl md:text-4xl font-bold mb-12 bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+          >
+            Leadership & Organizational Experience
+          </h2>
+
+          <div class="volunteer-gallery">
+            <div id="volunteerCarousel" class="relative w-full h-[600px] mb-12">
+            </div>
+
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 volunteer-cards"
+            >
+              <div class="volunteer-card group">
+                <div
+                  class="bg-slate-800/50 backdrop-blur-sm rounded-lg overflow-hidden border border-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20"
+                >
+                  <div
+                    class="h-40 bg-gradient-to-br from-blue-900/50 to-cyan-900/50 relative overflow-hidden"
+                  >
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-16 w-16 text-blue-500/30"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-900 to-transparent"
+                    >
+                      <h3 class="text-xl font-bold text-white">HIMATIF USU</h3>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center mb-3">
+                      <span class="text-cyan-400 font-medium"
+                        >Coordinator of Research and Technology</span
+                      >
+                      <span class="text-gray-500 mx-2">•</span>
+                      <span class="text-gray-400 text-sm">2023 - Present</span>
+                    </div>
+                    <p class="text-gray-300">
+                      Lead the Research and Technology Division at the
+                      Information Technology Student Association of the
+                      University of North Sumatra, orchestrating technical
+                      bootcamps including IT Developer Academy 2023, focusing on
+                      mobile development, web programming, and UI/UX design.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Technical Leadership</span
+                      >
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Event Management</span
+                      >
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Academic Initiatives</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="volunteer-card group">
+                <div
+                  class="bg-slate-800/50 backdrop-blur-sm rounded-lg overflow-hidden border border-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20"
+                >
+                  <div
+                    class="h-40 bg-gradient-to-br from-blue-900/50 to-cyan-900/50 relative overflow-hidden"
+                  >
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-16 w-16 text-blue-500/30"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M6.672 1.911a1 1 0 10-1.932.518l.259.966a1 1 0 001.932-.518l-.26-.966zM2.429 4.74a1 1 0 10-.517 1.932l.966.259a1 1 0 00.517-1.932l-.966-.26zm8.814-.569a1 1 0 00-1.415-1.414l-.707.707a1 1 0 101.415 1.415l.707-.708zm-7.071 7.072l.707-.707A1 1 0 003.465 9.12l-.708.707a1 1 0 001.415 1.415zm3.2-5.171a1 1 0 00-1.3 1.3l4 10a1 1 0 001.823.075l1.38-2.759 3.018 3.02a1 1 0 001.414-1.415l-3.019-3.02 2.76-1.379a1 1 0 00-.076-1.822l-10-4z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-900 to-transparent"
+                    >
+                      <h3 class="text-xl font-bold text-white">
+                        Young Techpreneur
+                      </h3>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center mb-3">
+                      <span class="text-cyan-400 font-medium">Vice-Leader</span>
+                      <span class="text-gray-500 mx-2">•</span>
+                      <span class="text-gray-400 text-sm">2023 - Present</span>
+                    </div>
+                    <p class="text-gray-300">
+                      Serve as the second-in-command for the Young Techpreneur
+                      organization, spearheading strategic initiatives to foster
+                      entrepreneurship in technology. Organized high-profile
+                      events including a talkshow featuring renowned web
+                      development educator Arfy Slowy from Web Programming
+                      Unpas.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Leadership</span
+                      >
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Event Planning</span
+                      >
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Tech Entrepreneurship</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="volunteer-card group">
+                <div
+                  class="bg-slate-800/50 backdrop-blur-sm rounded-lg overflow-hidden border border-blue-500/10 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg hover:shadow-blue-500/20"
+                >
+                  <div
+                    class="h-40 bg-gradient-to-br from-blue-900/50 to-cyan-900/50 relative overflow-hidden"
+                  >
+                    <div
+                      class="absolute inset-0 flex items-center justify-center"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-16 w-16 text-blue-500/30"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div
+                      class="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-slate-900 to-transparent"
+                    >
+                      <h3 class="text-xl font-bold text-white">IT-Fest 7.0</h3>
+                    </div>
+                  </div>
+                  <div class="p-5">
+                    <div class="flex items-center mb-3">
+                      <span class="text-cyan-400 font-medium"
+                        >IT Lead Member</span
+                      >
+                      <span class="text-gray-500 mx-2">•</span>
+                      <span class="text-gray-400 text-sm">2023</span>
+                    </div>
+                    <p class="text-gray-300">
+                      Served as lead IT member for IT-Fest 7.0, overseeing the
+                      development and maintenance of the event website.
+                      Implemented advanced features to support participant
+                      registration, event schedules, and competition management.
+                    </p>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Web Development</span
+                      >
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Project Management</span
+                      >
+                      <span
+                        class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                        >Technical Support</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="projects" class="section">
+        <div class="max-w-7xl mx-auto w-full">
+          <h2
+            class="text-3xl md:text-4xl font-bold mb-12 bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+          >
+            Featured Projects
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/images/wedding1.png"
+                        alt="Wedding Invitation"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/wedding2.png"
+                        alt="RSVP System"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/wedding3.png"
+                        alt="Admin Dashboard"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/wedding-4.png"
+                        alt="Admin Dashboard"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">
+                    Wedding Invitation Platform
+                  </h3>
+                  <p class="text-gray-400 flex-grow">
+                    Fully responsive digital wedding invitation system with
+                    personalized URLs, multilingual support, and RSVP
+                    management.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Next.js</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >TypeScript</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Prisma</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">
+                      Wedding Invitation Platform
+                    </h3>
+                    <p class="text-gray-300 mb-4">
+                      Designed and developed a comprehensive digital wedding
+                      invitation platform that features personalized
+                      invitations, multilingual support, and a secure admin
+                      dashboard for invitation management.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Created dynamic route generation for personalized
+                        guest URLs
+                      </li>
+                      <li>
+                        • Implemented dual language system (English/Indonesian)
+                        with context-based translation
+                      </li>
+                      <li>
+                        • Built secure admin dashboard with JWT authentication
+                        for invitation management
+                      </li>
+                      <li>
+                        • Integrated WhatsApp for simplified RSVP confirmation
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <div class="flex gap-2">
+                      <a
+                        href="#"
+                        target="_blank"
+                        class="text-cyan-400 hover:text-cyan-300"
+                        >View Project</a
+                      >
+                    </div>
+                    <span class="text-gray-500">2023</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/images/mughni1.png"
+                        alt="E-commerce Platform"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/mughni2.png"
+                        alt="Product Catalog"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/mughni3.png"
+                        alt="Cashier System"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/mughni4.png"
+                        alt="Cashier System"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">
+                    Mughnilintasnusa E-Commerce
+                  </h3>
+                  <p class="text-gray-400 flex-grow">
+                    Complete web application for a marker paint company with
+                    integrated product catalog and cashier system.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Laravel</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Bootstrap</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >MySQL</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">
+                      Mughnilintasnusa E-Commerce
+                    </h3>
+                    <p class="text-gray-300 mb-4">
+                      Engineered a comprehensive web application for a marker
+                      paint company with a focus on sales management and product
+                      presentation. The solution provides a streamlined cashier
+                      system and robust inventory tracking.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Created an intuitive cashier interface with receipt
+                        generation
+                      </li>
+                      <li>
+                        • Developed comprehensive product catalog with search
+                        functionality
+                      </li>
+                      <li>
+                        • Implemented inventory management and sales tracking
+                        analytics
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <a
+                      href="https://mughnilintasnusa.com"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >Visit Site</a
+                    >
+                    <span class="text-gray-500">Jun - Aug 2023</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/images/srikandi1.png"
+                        alt="Game Screenshot 1"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/srikandi2.png"
+                        alt="Game Screenshot 2"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/srikandi3.png"
+                        alt="Game Screenshot 3"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">
+                    Srikandi's Great Adventure
+                  </h3>
+                  <p class="text-gray-400 flex-grow">
+                    Top-down 2D shooter game inspired by the legendary
+                    Indonesian heroine Dewi Srikandi.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Unity</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >C#</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Game Design</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">
+                      Srikandi's Great Adventure
+                    </h3>
+                    <p class="text-gray-300 mb-4">
+                      Developed a captivating top-down 2D shooter game that
+                      brings Indonesian folklore to life through interactive
+                      gameplay. The game features unique weapons and abilities
+                      based on the legendary Dewi Srikandi character.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Created custom character movement and combat systems
+                      </li>
+                      <li>
+                        • Designed progressively challenging levels and enemy AI
+                      </li>
+                      <li>
+                        • Incorporated cultural elements from Indonesian
+                        mythology
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <a
+                      href="https://jamu-productions.itch.io/srikandis-great-adventure"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >Play Game</a
+                    >
+                    <span class="text-gray-500">Nov - Dec 2024</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/api/placeholder/400/300?text=ChatGPT+Clone+1"
+                        alt="AI Chat Interface"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/api/placeholder/400/300?text=ChatGPT+Clone+2"
+                        alt="Chat Features"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/api/placeholder/400/300?text=ChatGPT+Clone+3"
+                        alt="Mobile View"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">AI Chat Application</h3>
+                  <p class="text-gray-400 flex-grow">
+                    ChatGPT-inspired application using Grok AI with llama model
+                    integration.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Next.js</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Laravel</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >LLM</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">AI Chat Application</h3>
+                    <p class="text-gray-300 mb-4">
+                      Built a sophisticated AI chat platform leveraging Grok
+                      AI's implementation of the llama model. This project
+                      demonstrates advanced integration between modern frontend
+                      frameworks and AI-powered backend services.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Implemented real-time chat interface with streaming
+                        responses
+                      </li>
+                      <li>
+                        • Created RESTful API endpoints for AI model interaction
+                      </li>
+                      <li>
+                        • Developed responsive UI with conversation history
+                        management
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <a
+                      href="https://github.com/rizkisahat996/telkom-project-frontend"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >GitHub Frontend</a
+                    >
+                    <a
+                      href="https://github.com/rizkisahat996/project-telkom-backend"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >GitHub Backend</a
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/images/slipi1.png"
+                        alt="Church Website"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                      <img
+                        src="/images/slipi2.png"
+                        alt="File Management System"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">
+                    HKBP Slipi Church Platform
+                  </h3>
+                  <p class="text-gray-400 flex-grow">
+                    Comprehensive church website with integrated file management
+                    for congregation and administrative use.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Laravel</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Bootstrap</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >File Management</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">
+                      HKBP Slipi Church Platform
+                    </h3>
+                    <p class="text-gray-300 mb-4">
+                      Designed and developed a comprehensive web platform for
+                      HKBP Slipi church, featuring robust file management
+                      capabilities and an intuitive interface for both
+                      congregation members and administrators.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Implemented secure document storage and sharing system
+                      </li>
+                      <li>
+                        • Created user role management with differentiated
+                        access
+                      </li>
+                      <li>
+                        • Built responsive UI optimized for various devices
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <a
+                      href="#"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >View Project</a
+                    >
+                    <span class="text-gray-500">Sep - Aug 2023</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/images/absen1.png"
+                        alt="Attendance Dashboard"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">
+                    Employee Attendance System
+                  </h3>
+                  <p class="text-gray-400 flex-grow">
+                    Comprehensive attendance management system for LSPHCMI with
+                    reporting and analytics.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Laravel</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >MySQL</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Reporting</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">
+                      Employee Attendance System
+                    </h3>
+                    <p class="text-gray-300 mb-4">
+                      Engineered a sophisticated attendance tracking application
+                      for LSPHCMI, enabling seamless management of employee time
+                      records and generating comprehensive attendance reports.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Developed customizable reporting with export
+                        functionality
+                      </li>
+                      <li>
+                        • Implemented user authentication with role-based
+                        permissions
+                      </li>
+                      <li>
+                        • Created intuitive dashboard with real-time statistics
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <a
+                      href="#"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >View Project</a
+                    >
+                    <span class="text-gray-500">Aug - Sep 2023</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="project-card h-96">
+              <div class="project-card-inner h-full">
+                <div class="project-card-front bg-slate-800 p-4 flex flex-col">
+                  <div
+                    class="carousel h-48 mb-4 overflow-hidden rounded relative"
+                  >
+                    <div
+                      class="carousel-container h-full flex transition-transform duration-500 ease-in-out"
+                    >
+                      <img
+                        src="/images/law1.png"
+                        alt="Legal Consultation"
+                        class="carousel-item w-full h-full object-cover flex-shrink-0"
+                      />
+                    </div>
+                    <div
+                      class="carousel-indicators absolute bottom-2 left-0 right-0 flex justify-center space-x-2"
+                    >
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator active"
+                        data-index="0"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="1"
+                      ></button>
+                      <button
+                        class="w-2 h-2 rounded-full bg-white opacity-50 carousel-indicator"
+                        data-index="2"
+                      ></button>
+                    </div>
+                  </div>
+                  <h3 class="text-xl font-bold mb-2">
+                    Legal Consultation Platform
+                  </h3>
+                  <p class="text-gray-400 flex-grow">
+                    Modern legal consultation application with secure
+                    client-attorney communication.
+                  </p>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Next.js</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >Laravel API</span
+                    >
+                    <span
+                      class="px-2 py-1 bg-blue-900/50 text-blue-300 text-xs rounded"
+                      >RESTful</span
+                    >
+                  </div>
+                </div>
+                <div class="project-card-back">
+                  <div>
+                    <h3 class="text-xl font-bold mb-4">
+                      Legal Consultation Platform
+                    </h3>
+                    <p class="text-gray-300 mb-4">
+                      Architected and developed a sophisticated legal
+                      consultation platform that facilitates secure
+                      communication between clients and attorneys, with
+                      integrated case management features.
+                    </p>
+                    <ul class="text-gray-400 space-y-1 mb-4">
+                      <li>
+                        • Built RESTful API infrastructure with Laravel backend
+                      </li>
+                      <li>
+                        • Designed responsive Next.js frontend with
+                        authentication
+                      </li>
+                      <li>
+                        • Implemented secure messaging and document sharing
+                      </li>
+                    </ul>
+                  </div>
+                  <div class="flex justify-between mt-4">
+                    <a
+                      href="#"
+                      target="_blank"
+                      class="text-cyan-400 hover:text-cyan-300"
+                      >View Project</a
+                    >
+                    <span class="text-gray-500">October 2023</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contact" class="section bg-slate-900/30">
+        <div class="max-w-4xl mx-auto">
+          <h2
+            class="text-3xl md:text-4xl font-bold mb-12 bg-gradient-to-r from-blue-500 to-cyan-400 bg-clip-text text-transparent"
+          >
+            Get In Touch
+          </h2>
+
+          <div
+            class="bg-slate-800/50 backdrop-blur-sm p-8 rounded-lg shadow-lg border border-blue-500/10"
+          >
+            <div class="flex flex-col md:flex-row gap-8">
+              <div class="md:w-1/2">
+                <h3 class="text-xl font-bold mb-4">Contact Info</h3>
+                <div class="space-y-4">
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-blue-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"
+                        />
+                        <path
+                          d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-gray-300 font-medium">Email</p>
+                      <a
+                        href="mailto:rizkisahat@gmail.com"
+                        class="text-cyan-400 hover:text-cyan-300"
+                        >rizkisahat@gmail.com</a
+                      >
+                    </div>
+                  </div>
+
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-blue-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-gray-300 font-medium">Location</p>
+                      <p class="text-gray-400">Medan, Indonesia</p>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center">
+                    <div
+                      class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center mr-4"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-5 w-5 text-blue-400"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-gray-300 font-medium">Phone</p>
+                      <a
+                        href="tel:+14151234567"
+                        class="text-cyan-400 hover:text-cyan-300"
+                        >+62 831-1563-0741</a
+                      >
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mt-8">
+                  <h3 class="text-xl font-bold mb-4">Connect</h3>
+                  <div class="flex space-x-4">
+                    <a
+                      href="https://github.com/"
+                      target="_blank"
+                      class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 hover:bg-blue-500/30 transition-all duration-300"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path
+                          d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+                        />
+                      </svg>
+                    </a>
+                    <a
+                      href="https://linkedin.com/"
+                      target="_blank"
+                      class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 hover:bg-blue-500/30 transition-all duration-300"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path
+                          d="M0 1.146C0 .513.526 0 1.175 0h13.65C15.474 0 16 .513 16 1.146v13.708c0 .633-.526 1.146-1.175 1.146H1.175C.526 16 0 15.487 0 14.854V1.146zm4.943 12.248V6.169H2.542v7.225h2.401zm-1.2-8.212c.837 0 1.358-.554 1.358-1.248-.015-.709-.52-1.248-1.342-1.248-.822 0-1.359.54-1.359 1.248 0 .694.521 1.248 1.327 1.248h.016zm4.908 8.212V9.359c0-.216.016-.432.08-.586.173-.431.568-.878 1.232-.878.869 0 1.216.662 1.216 1.634v3.865h2.401V9.25c0-2.22-1.184-3.252-2.764-3.252-1.274 0-1.845.7-2.165 1.193v.025h-.016a5.54 5.54 0 0 1 .016-.025V6.169h-2.4c.03.678 0 7.225 0 7.225h2.4z"
+                        />
+                      </svg>
+                    </a>
+                    <a
+                      href="https://twitter.com/"
+                      target="_blank"
+                      class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 hover:bg-blue-500/30 transition-all duration-300"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        fill="currentColor"
+                        viewBox="0 0 16 16"
+                      >
+                        <path
+                          d="M5.026 15c6.038 0 9.341-5.003 9.341-9.334 0-.14 0-.282-.006-.422A6.685 6.685 0 0 0 16 3.542a6.658 6.658 0 0 1-1.889.518 3.301 3.301 0 0 0 1.447-1.817 6.533 6.533 0 0 1-2.087.793A3.286 3.286 0 0 0 7.875 6.03a9.325 9.325 0 0 1-6.767-3.429 3.289 3.289 0 0 0 1.018 4.382A3.323 3.323 0 0 1 .64 6.575v.045a3.288 3.288 0 0 0 2.632 3.218 3.203 3.203 0 0 1-.865.115 3.23 3.23 0 0 1-.614-.057 3.283 3.283 0 0 0 3.067 2.277A6.588 6.588 0 0 1 .78 13.58a6.32 6.32 0 0 1-.78-.045A9.344 9.344 0 0 0 5.026 15z"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="md:w-1/2">
+                <h3 class="text-xl font-bold mb-4">Send a Message</h3>
+                <form id="contactForm" class="space-y-4">
+                  <div>
+                    <label for="name" class="block text-gray-300 mb-2"
+                      >Name</label
+                    >
+                    <input
+                      type="text"
+                      id="name"
+                      class="w-full px-4 py-2 bg-slate-900/50 border border-blue-500/30 rounded-lg focus:outline-none focus:border-blue-500 text-gray-200"
+                      placeholder="Your Name"
+                    />
+                  </div>
+                  <div>
+                    <label for="email" class="block text-gray-300 mb-2"
+                      >Email</label
+                    >
+                    <input
+                      type="email"
+                      id="email"
+                      class="w-full px-4 py-2 bg-slate-900/50 border border-blue-500/30 rounded-lg focus:outline-none focus:border-blue-500 text-gray-200"
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  <div>
+                    <label for="message" class="block text-gray-300 mb-2"
+                      >Message</label
+                    >
+                    <textarea
+                      id="message"
+                      rows="4"
+                      class="w-full px-4 py-2 bg-slate-900/50 border border-blue-500/30 rounded-lg focus:outline-none focus:border-blue-500 text-gray-200"
+                      placeholder="Your message..."
+                    ></textarea>
+                  </div>
+                  <button
+                    type="submit"
+                    class="glow w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-500 text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/50"
+                  >
+                    Send Message
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="py-8 bg-black/70 text-center text-gray-400">
+        <div class="max-w-7xl mx-auto px-6">
+          <p>© 2025 Rizki Sahat. All rights reserved.</p>
+          <div class="mt-4">
+            <a
+              href="#"
+              class="text-gray-400 hover:text-cyan-400 mx-2 transition-colors duration-300"
+              >Privacy Policy</a
+            >
+            <span class="text-gray-600">|</span>
+            <a
+              href="#"
+              class="text-gray-400 hover:text-cyan-400 mx-2 transition-colors duration-300"
+              >Terms of Service</a
+            >
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <script>
+      // Mobile Menu Toggle
+      const menuToggle = document.getElementById("menuToggle");
+      const mobileMenu = document.getElementById("mobileMenu");
+
+      menuToggle.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden");
+      });
+
+      // Smooth Scrolling for Navigation Links
+      document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
+        anchor.addEventListener("click", function (e) {
+          e.preventDefault();
+
+          if (mobileMenu && !mobileMenu.classList.contains("hidden")) {
+            mobileMenu.classList.add("hidden");
+          }
+
+          document.querySelector(this.getAttribute("href")).scrollIntoView({
+            behavior: "smooth",
+          });
+        });
+      });
+
+      // Contact Form Submission
+      const contactForm = document.getElementById("contactForm");
+      if (contactForm) {
+        contactForm.addEventListener("submit", function (e) {
+          e.preventDefault();
+
+          // In a real implementation, you would send the form data to a server
+          // For demo purposes, we'll just show a success message
+          const submitButton = this.querySelector('button[type="submit"]');
+          const originalText = submitButton.innerHTML;
+
+          submitButton.innerHTML = "Message Sent!";
+          submitButton.classList.add("bg-green-600");
+          submitButton.classList.remove("from-blue-600", "to-cyan-500");
+
+          // Reset form fields
+          this.reset();
+
+          // Reset button after 3 seconds
+          setTimeout(() => {
+            submitButton.innerHTML = originalText;
+            submitButton.classList.remove("bg-green-600");
+            submitButton.classList.add("from-blue-600", "to-cyan-500");
+          }, 3000);
+        });
+      }
+
+      // Three.js Scene Setup
+      let scene, camera, renderer;
+      let particles;
+
+      function initThree() {
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(
+          75,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.z = 50;
+
+        renderer = new THREE.WebGLRenderer({
+          canvas: document.getElementById("bg"),
+          antialias: true,
+          alpha: true,
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+
+        // Create particles
+        createParticles();
+
+        // Create floating objects
+        createFloatingObjects();
+
+        // Handle window resize
+        window.addEventListener("resize", onWindowResize);
+
+        // Start animation loop
+        animate();
+
+        // Add mouse movement tracking
+        document.addEventListener("mousemove", onMouseMove);
+      }
+
+      function createParticles() {
+        const particlesGeometry = new THREE.BufferGeometry();
+        const particlesCount = 2000;
+
+        const posArray = new Float32Array(particlesCount * 3);
+        const scaleArray = new Float32Array(particlesCount);
+
+        for (let i = 0; i < particlesCount * 3; i += 3) {
+          posArray[i] = (Math.random() - 0.5) * 200;
+          posArray[i + 1] = (Math.random() - 0.5) * 200;
+          posArray[i + 2] = (Math.random() - 0.5) * 200;
+          scaleArray[i / 3] = Math.random();
+        }
+
+        particlesGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(posArray, 3)
+        );
+        particlesGeometry.setAttribute(
+          "scale",
+          new THREE.BufferAttribute(scaleArray, 1)
+        );
+
+        const particlesMaterial = new THREE.PointsMaterial({
+          size: 0.4,
+          sizeAttenuation: true,
+          color: 0x0891b2,
+          transparent: true,
+          opacity: 0.8,
+        });
+
+        particles = new THREE.Points(particlesGeometry, particlesMaterial);
+        scene.add(particles);
+      }
+
+      const floatingObjects = [];
+
+      function createFloatingObjects() {
+        // Create some geometric objects floating in the background
+        const geometries = [
+          new THREE.TetrahedronGeometry(6, 0),
+          new THREE.OctahedronGeometry(6, 0),
+          new THREE.IcosahedronGeometry(6, 0),
+          new THREE.DodecahedronGeometry(6, 0),
+          new THREE.TorusGeometry(4, 1.5, 16, 40),
+        ];
+
+        for (let i = 0; i < 8; i++) {
+          const geometry =
+            geometries[Math.floor(Math.random() * geometries.length)];
+          const material = new THREE.MeshBasicMaterial({
+            color: new THREE.Color(
+              Math.random() * 0.2 + 0.1,
+              Math.random() * 0.2 + 0.3,
+              Math.random() * 0.2 + 0.7
+            ),
+            wireframe: true,
+            transparent: true,
+            opacity: 0.6,
+          });
+
+          const mesh = new THREE.Mesh(geometry, material);
+
+          mesh.position.x = (Math.random() - 0.5) * 120;
+          mesh.position.y = (Math.random() - 0.5) * 120;
+          mesh.position.z = (Math.random() - 0.5) * 80 - 20;
+
+          mesh.rotation.x = Math.random() * Math.PI;
+          mesh.rotation.y = Math.random() * Math.PI;
+
+          mesh.rotationSpeed = {
+            x: (Math.random() - 0.5) * 0.01,
+            y: (Math.random() - 0.5) * 0.01,
+            z: (Math.random() - 0.5) * 0.01,
+          };
+
+          mesh.floatSpeed = {
+            x: (Math.random() - 0.5) * 0.05,
+            y: (Math.random() - 0.5) * 0.05,
+            z: (Math.random() - 0.5) * 0.05,
+          };
+
+          mesh.floatLimit = {
+            x: mesh.position.x + (Math.random() - 0.5) * 10,
+            y: mesh.position.y + (Math.random() - 0.5) * 10,
+            z: mesh.position.z + (Math.random() - 0.5) * 10,
+          };
+
+          mesh.initialPosition = {
+            x: mesh.position.x,
+            y: mesh.position.y,
+            z: mesh.position.z,
+          };
+
+          floatingObjects.push(mesh);
+          scene.add(mesh);
+        }
+      }
+
+      let mouseX = 0;
+      let mouseY = 0;
+
+      function onMouseMove(event) {
+        mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+        mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+      function initProjectCarousels() {
+        const carousels = document.querySelectorAll(".carousel");
+
+        carousels.forEach((carousel, carouselIndex) => {
+          const container = carousel.querySelector(".carousel-container");
+          const indicators = carousel.querySelectorAll(".carousel-indicator");
+          const slides = carousel.querySelectorAll(".carousel-item");
+          const totalSlides = slides.length;
+          let currentSlide = 0;
+          let interval = null;
+
+          // Function to move to a specific slide
+          const goToSlide = (slideIndex) => {
+            if (slideIndex >= totalSlides) slideIndex = 0;
+            if (slideIndex < 0) slideIndex = totalSlides - 1;
+
+            // Update container position
+            container.style.transform = `translateX(-${slideIndex * 100}%)`;
+
+            // Update indicators
+            indicators.forEach((indicator, index) => {
+              if (index === slideIndex) {
+                indicator.classList.add("active");
+              } else {
+                indicator.classList.remove("active");
+              }
+            });
+
+            currentSlide = slideIndex;
+          };
+
+          // Set up click listeners for indicators
+          indicators.forEach((indicator, index) => {
+            indicator.addEventListener("click", () => {
+              goToSlide(index);
+              resetInterval();
+            });
+          });
+
+          // Auto-advance slides
+          const startInterval = () => {
+            interval = setInterval(() => {
+              goToSlide(currentSlide + 1);
+            }, 3000);
+          };
+
+          const resetInterval = () => {
+            clearInterval(interval);
+            startInterval();
+          };
+
+          // Initialize the carousel
+          startInterval();
+
+          // Pause auto-rotation when hovering
+          carousel.addEventListener("mouseenter", () =>
+            clearInterval(interval)
+          );
+          carousel.addEventListener("mouseleave", startInterval);
+
+          // Set carousel data attribute for identification
+          carousel.dataset.carousel = carouselIndex;
+        });
+      }
+
+      // Initialize carousels after page load
+      window.addEventListener("load", () => {
+        initProjectCarousels();
+      });
+
+      let clock = new THREE.Clock();
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        const elapsedTime = clock.getElapsedTime();
+
+        // Animate particles
+        if (particles) {
+          particles.rotation.x = elapsedTime * 0.05;
+          particles.rotation.y = elapsedTime * 0.03;
+        }
+
+        // Animate floating objects
+        floatingObjects.forEach((obj) => {
+          // Rotate continuously
+          obj.rotation.x += obj.rotationSpeed.x;
+          obj.rotation.y += obj.rotationSpeed.y;
+          obj.rotation.z += obj.rotationSpeed.z;
+
+          // Float in a sinusoidal pattern
+          obj.position.x =
+            obj.initialPosition.x +
+            Math.sin(elapsedTime * obj.floatSpeed.x) * 5;
+          obj.position.y =
+            obj.initialPosition.y +
+            Math.sin(elapsedTime * obj.floatSpeed.y) * 5;
+          obj.position.z =
+            obj.initialPosition.z +
+            Math.sin(elapsedTime * obj.floatSpeed.z) * 5;
+
+          // Slight movement based on mouse position
+          obj.position.x += mouseX * 0.1;
+          obj.position.y += mouseY * 0.1;
+        });
+
+        // Slight camera movement based on mouse position
+        camera.position.x = mouseX * 5;
+        camera.position.y = mouseY * 5;
+        camera.lookAt(scene.position);
+
+        renderer.render(scene, camera);
+      }
+
+      // Initialize Three.js scene after page has loaded
+      window.addEventListener("load", () => {
+        // Initialize Three.js
+        initThree();
+
+        // Hide loader after a delay
+        setTimeout(() => {
+          document.getElementById("loader").classList.add("hidden");
+        }, 1500);
+      });
+      function initEducationPath() {
+        if (!document.getElementById("educationPath")) return;
+
+        const container = document.getElementById("educationPath");
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        // Create scene, camera, renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          width / height,
+          0.1,
+          1000
+        );
+        const renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+        });
+
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+        container.appendChild(renderer.domElement);
+
+        // Create path geometry
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(-width / 2 + 50, height / 2 - 50, 0),
+          new THREE.Vector3(-width / 4, height / 4, 20),
+          new THREE.Vector3(0, 0, 40),
+          new THREE.Vector3(width / 4, -height / 4, 20),
+          new THREE.Vector3(width / 2 - 50, -height / 2 + 50, 0),
+        ]);
+
+        const points = curve.getPoints(50);
+        const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+        const material = new THREE.LineBasicMaterial({
+          color: 0x0891b2,
+          transparent: true,
+          opacity: 0.5,
+        });
+
+        const curveObject = new THREE.Line(geometry, material);
+        scene.add(curveObject);
+
+        // Add glowing spheres at education points
+        const educationItems = document.querySelectorAll(".education-item");
+        const sphereGeometry = new THREE.SphereGeometry(8, 16, 16);
+        const sphereMaterial = new THREE.MeshBasicMaterial({
+          color: 0x2563eb,
+          transparent: true,
+          opacity: 0.7,
+        });
+
+        const spheres = [];
+        for (let i = 0; i < Math.min(5, educationItems.length); i++) {
+          const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial.clone());
+          const position = curve.getPointAt(
+            i / (Math.min(5, educationItems.length) - 1)
+          );
+          sphere.position.copy(position);
+          scene.add(sphere);
+          spheres.push({
+            mesh: sphere,
+            initialScale: 1,
+            pulseSpeed: 0.5 + Math.random() * 0.5,
+          });
+        }
+
+        // Position camera
+        camera.position.z = 100;
+
+        // Animation
+        function animate() {
+          requestAnimationFrame(animate);
+
+          const time = Date.now() * 0.001;
+
+          // Animate spheres
+          spheres.forEach((sphere, i) => {
+            const pulse = Math.sin(time * sphere.pulseSpeed) * 0.2 + 0.8;
+            sphere.mesh.scale.set(pulse, pulse, pulse);
+            sphere.mesh.material.opacity =
+              0.5 + Math.sin(time * sphere.pulseSpeed) * 0.2;
+          });
+
+          // Rotate slightly
+          curveObject.rotation.y = Math.sin(time * 0.2) * 0.1;
+
+          renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          const newWidth = container.clientWidth;
+          const newHeight = container.clientHeight;
+
+          camera.aspect = newWidth / newHeight;
+          camera.updateProjectionMatrix();
+
+          renderer.setSize(newWidth, newHeight);
+        });
+      }
+
+      // Volunteering 3D Carousel
+      function initVolunteerCarousel() {
+        if (!document.getElementById("volunteerCarousel")) return;
+
+        const container = document.getElementById("volunteerCarousel");
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        // Create scene, camera, renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+          75,
+          width / height,
+          0.1,
+          1000
+        );
+        const renderer = new THREE.WebGLRenderer({
+          alpha: true,
+          antialias: true,
+        });
+
+        renderer.setSize(width, height);
+        renderer.setPixelRatio(window.devicePixelRatio > 1 ? 2 : 1);
+        container.appendChild(renderer.domElement);
+
+        // Create floating cards
+        const cards = [];
+        const cardGeometry = new THREE.PlaneGeometry(120, 160);
+
+        const volunteerData = [
+          {
+            title: "HIMATIF USU",
+            role: "Coordinator of Research and Technology",
+            desc: "Led the Research and Technology Division at the Information Technology Student Association, orchestrating technical bootcamps including IT Developer Academy 2023 focusing on mobile development, web programming, and UI/UX design.",
+            color: 0x3b82f6,
+          },
+          {
+            title: "Young Techpreneur (YouTech)",
+            role: "Vice-Leader",
+            desc: "Served as second-in-command for the Young Techpreneur organization, spearheading strategic initiatives and organizing high-profile events including a talkshow featuring renowned web development educator Arfy Slowy from Web Programming Unpas.",
+            color: 0x06b6d4,
+          },
+          {
+            title: "IT-Fest 7.0",
+            role: "IT Lead Member",
+            desc: "Oversaw the development and maintenance of the event website (itfestusu.id), implementing advanced features to support participant registration, event schedules, and competition management.",
+            color: 0x2dd4bf,
+          },
+        ];
+
+        // Create text canvas texture for cards
+        function createCardTexture(data) {
+          const canvas = document.createElement("canvas");
+          canvas.width = 512;
+          canvas.height = 680;
+          const ctx = canvas.getContext("2d");
+
+          // Background gradient
+          const gradient = ctx.createLinearGradient(0, 0, 0, 680);
+          gradient.addColorStop(0, "rgba(15, 23, 42, 0.9)");
+          gradient.addColorStop(1, "rgba(30, 41, 59, 0.9)");
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 512, 680);
+
+          // Header line
+          ctx.fillStyle = `#${data.color.toString(16).padStart(6, "0")}`;
+          ctx.fillRect(0, 0, 512, 8);
+
+          // Title
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "bold 32px Arial";
+          ctx.fillText(data.title, 30, 60);
+
+          // Role
+          ctx.fillStyle = "#38bdf8";
+          ctx.font = "24px Arial";
+          ctx.fillText(data.role, 30, 100);
+
+          // Description
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = "20px Arial";
+          wrapText(ctx, data.desc, 30, 150, 452, 25);
+
+          return new THREE.CanvasTexture(canvas);
+        }
+
+        // Helper for text wrapping
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+          const words = text.split(" ");
+          let line = "";
+
+          for (let i = 0; i < words.length; i++) {
+            const testLine = line + words[i] + " ";
+            const metrics = ctx.measureText(testLine);
+            const testWidth = metrics.width;
+
+            if (testWidth > maxWidth && i > 0) {
+              ctx.fillText(line, x, y);
+              line = words[i] + " ";
+              y += lineHeight;
+            } else {
+              line = testLine;
+            }
+          }
+
+          ctx.fillText(line, x, y);
+        }
+
+        // Create cards
+        volunteerData.forEach((data, i) => {
+          const cardTexture = createCardTexture(data);
+          const cardMaterial = new THREE.MeshBasicMaterial({
+            map: cardTexture,
+            transparent: true,
+            opacity: 0.9,
+            side: THREE.DoubleSide,
+          });
+
+          const card = new THREE.Mesh(cardGeometry, cardMaterial);
+
+          // Position in a circle
+          const angle = (i / volunteerData.length) * Math.PI * 2;
+          const radius = 200;
+          card.position.x = Math.sin(angle) * radius;
+          card.position.z = Math.cos(angle) * radius;
+          card.rotation.y = -angle;
+
+          cards.push({
+            mesh: card,
+            initialPosition: {
+              x: card.position.x,
+              y: card.position.y,
+              z: card.position.z,
+            },
+            initialRotation: card.rotation.y,
+          });
+
+          scene.add(card);
+        });
+
+        // Position camera
+        camera.position.z = 300;
+        camera.position.y = 100;
+        camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+        let mouseX = 0;
+        let mouseY = 0;
+        let targetRotationY = 0;
+
+        // Handle mouse movement
+        document.addEventListener("mousemove", (event) => {
+          mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+          mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        // Animation
+        function animate() {
+          requestAnimationFrame(animate);
+
+          // Rotate carousel based on mouse position
+          targetRotationY += mouseX * 0.02;
+
+          cards.forEach((card, i) => {
+            const angle = card.initialRotation - targetRotationY;
+            const radius = 200;
+
+            card.mesh.position.x = Math.sin(angle) * radius;
+            card.mesh.position.z = Math.cos(angle) * radius;
+            card.mesh.rotation.y = -angle;
+
+            // Scale based on z position (cards in front appear larger)
+            const scale = THREE.MathUtils.mapLinear(
+              card.mesh.position.z,
+              -radius,
+              radius,
+              0.8,
+              1.2
+            );
+            card.mesh.scale.set(scale, scale, scale);
+
+            // Adjust opacity based on position
+            card.mesh.material.opacity = THREE.MathUtils.mapLinear(
+              scale,
+              0.8,
+              1.2,
+              0.6,
+              0.95
+            );
+          });
+
+          // Tilt camera based on mouse Y position
+          camera.position.y = 100 + mouseY * 50;
+          camera.lookAt(new THREE.Vector3(0, 0, 0));
+
+          renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener("resize", () => {
+          const newWidth = container.clientWidth;
+          const newHeight = container.clientHeight;
+
+          camera.aspect = newWidth / newHeight;
+          camera.updateProjectionMatrix();
+
+          renderer.setSize(newWidth, newHeight);
+        });
+      }
+
+      // Initialize new sections after page load
+      window.addEventListener("load", () => {
+        initEducationPath();
+        initVolunteerCarousel();
+      });
+    </script>
+  </body>
+</html>
